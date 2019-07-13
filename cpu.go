@@ -85,6 +85,18 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Set Vx = Vy.
 		case 0x0000:
 			return func() error { return c.LoadReg(inst) }, nil
+		//Set Vx = Vx OR Vy.
+		case 0x0001:
+			return func() error { return c.Or(inst) }, nil
+		//Set Vx = Vx AND Vy.
+		case 0x0002:
+			return func() error { return c.And(inst) }, nil
+		//Set Vx = Vx XOR Vy.
+		case 0x0003:
+			return func() error { return c.Xor(inst) }, nil
+		//Set Vx = Vx + Vy, set VF = carry.
+		case 0x0004:
+			return func() error { return c.Add(inst) }, nil
 		}
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)

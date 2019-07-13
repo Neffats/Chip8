@@ -252,7 +252,7 @@ func TestLoadValue(t *testing.T) {
 				if tc.expectErr == true {
 					return
 				}
-				t.Fatalf("failed execute jump: %v", err)
+				t.Fatalf("failed execute LoadValue: %v", err)
 			}
 			if c8.V[tc.expected.reg] != tc.expected.value {
 				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
@@ -296,7 +296,7 @@ func TestAddValue(t *testing.T) {
 				if tc.expectErr == true {
 					return
 				}
-				t.Fatalf("failed execute jump: %v", err)
+				t.Fatalf("failed execute AddValue: %v", err)
 			}
 			if c8.V[tc.expected.reg] != tc.expected.value {
 				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
@@ -342,10 +342,205 @@ func TestLoadReg(t *testing.T) {
 				if tc.expectErr == true {
 					return
 				}
-				t.Fatalf("failed execute jump: %v", err)
+				t.Fatalf("failed execute LoadReg: %v", err)
 			}
 			if c8.V[tc.expected.reg] != tc.expected.value {
 				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
+			}
+		})
+	}
+}
+
+func TestOr(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  treg
+		expectErr bool
+	}{
+		{name: "Or VB | V7", inst: 0x87B1,
+			reg: []treg{
+				treg{reg: 0x07, value: 70},
+				treg{reg: 0x0B, value: 25}},
+			expected: treg{reg: 0x07, value: 95}, expectErr: false},
+		{name: "Or V2 | VA", inst: 0x8A21,
+			reg: []treg{
+				treg{reg: 0x0A, value: 150},
+				treg{reg: 0x02, value: 95}},
+			expected: treg{reg: 0x0A, value: 223}, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB,
+			reg: []treg{
+				treg{reg: 0x03, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.Or(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Or: %v", err)
+			}
+			if c8.V[tc.expected.reg] != tc.expected.value {
+				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
+			}
+		})
+	}
+}
+
+func TestAnd(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  treg
+		expectErr bool
+	}{
+		{name: "Or VB | V7", inst: 0x87B2,
+			reg: []treg{
+				treg{reg: 0x07, value: 70},
+				treg{reg: 0x0B, value: 25}},
+			expected: treg{reg: 0x07, value: 0}, expectErr: false},
+		{name: "Or V2 | VA", inst: 0x8A22,
+			reg: []treg{
+				treg{reg: 0x0A, value: 150},
+				treg{reg: 0x02, value: 95}},
+			expected: treg{reg: 0x0A, value: 22}, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB,
+			reg: []treg{
+				treg{reg: 0x03, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.And(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Or: %v", err)
+			}
+			if c8.V[tc.expected.reg] != tc.expected.value {
+				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
+			}
+		})
+	}
+}
+
+func TestXor(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  treg
+		expectErr bool
+	}{
+		{name: "Xor VB ^ V7", inst: 0x87B3,
+			reg: []treg{
+				treg{reg: 0x07, value: 187},
+				treg{reg: 0x0B, value: 25}},
+			expected: treg{reg: 0x07, value: 162}, expectErr: false},
+		{name: "Xor V2 ^ VA", inst: 0x8A23,
+			reg: []treg{
+				treg{reg: 0x0A, value: 150},
+				treg{reg: 0x02, value: 95}},
+			expected: treg{reg: 0x0A, value: 201}, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB,
+			reg: []treg{
+				treg{reg: 0x03, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.Xor(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Xor: %v", err)
+			}
+			if c8.V[tc.expected.reg] != tc.expected.value {
+				t.Errorf("expected: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
+			}
+		})
+	}
+}
+
+func TestAdd(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  []treg
+		expectErr bool
+	}{
+		{name: "Normal Add", inst: 0x87B4,
+			reg: []treg{
+				treg{reg: 0x07, value: 187},
+				treg{reg: 0x0B, value: 25}},
+			expected: []treg{
+				{reg: 0x07, value: 212},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "Add with carry", inst: 0x8A24,
+			reg: []treg{
+				treg{reg: 0x0A, value: 255},
+				treg{reg: 0x02, value: 255}},
+			expected: []treg{
+				{reg: 0x0A, value: 0xFE},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB,
+			reg: []treg{
+				treg{reg: 0x03, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: []treg{
+				{reg: 0x0A, value: 255},
+				{reg: 0x0F, value: 1}},
+			expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.Add(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Add: %v", err)
+			}
+			for _, r := range tc.expected {
+				if c8.V[r.reg] != r.value {
+					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
+				}
 			}
 		})
 	}
