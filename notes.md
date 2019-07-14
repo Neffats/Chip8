@@ -1,12 +1,12 @@
-#Notes
+# Notes
 
-##Graphics
+## Graphics
 
-###SDL2
+### SDL2
 
 Set surface pixels.
 
-####Links:
+#### Links:
 
 [https://wiki.libsdl.org/SDL_Surface]
 
