@@ -8,6 +8,8 @@ import (
 const (
 	//PCInit is the inital value for the PC.
 	PCInit = uint16(512)
+	//SPInit is the inital value for the SP.
+	SPInit = uint8(16)
 )
 
 //CPU for Chip8 VM
@@ -29,7 +31,7 @@ func NewCPU(m memory) *CPU {
 	return &CPU{
 		PC:     PCInit,
 		I:      0,
-		SP:     16,
+		SP:     SPInit,
 		Memory: m,
 	}
 }
@@ -48,7 +50,7 @@ func (c *CPU) Fetch() (uint16, error) {
 	//Retrieve last byte of instruction
 	i, err = c.Memory.Read(c.PC)
 	if err != nil {
-		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch first byte of instruction: %v", err)
+		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch last byte of instruction: %v", err)
 	}
 	inst = append(inst, i)
 
@@ -97,7 +99,22 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Set Vx = Vx + Vy, set VF = carry.
 		case 0x0004:
 			return func() error { return c.Add(inst) }, nil
+		//Set Vx = Vx - Vy, set VF = NOT borrow.
+		case 0x0005:
+			return func() error { return c.Sub(inst) }, nil
+		//Set Vx = Vx SHR 1.
+		case 0x0006:
+			return func() error { return c.ShiftRight(inst) }, nil
+		//Set Vx = Vy - Vx, set VF = NOT borrow.
+		case 0x0007:
+			return func() error { return c.SubN(inst) }, nil
+		//Set Vx = Vx SHL 1.
+		case 0x000E:
+			return func() error { return c.ShiftLeft(inst) }, nil
 		}
+	//Skip next instruction if Vx != Vy.
+	case 0x9000:
+		return func() error { return c.SkipNotEqualReg(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }
@@ -115,7 +132,7 @@ func (c *CPU) Push(data uint16) error {
 
 //Pop top value off stack and increment stack pointer
 func (c *CPU) Pop() (uint16, error) {
-	if int(c.SP) > len(c.Stack) {
+	if c.SP > SPInit {
 		return 0, fmt.Errorf("no data in stack to pop")
 	}
 	data := c.Stack[c.SP]

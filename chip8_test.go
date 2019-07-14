@@ -15,7 +15,6 @@ func setup() *CPU {
 }
 
 func TestPush(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -61,7 +60,6 @@ func TestPush(t *testing.T) {
 }
 
 func TestJump(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -91,7 +89,6 @@ func TestJump(t *testing.T) {
 }
 
 func TestCall(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -122,6 +119,24 @@ func TestCall(t *testing.T) {
 			}
 		})
 	}
+	t.Run("Call Stack limit test.", func(t *testing.T) {
+		c8 := setup()
+		i := 0
+		//Fill stack with data.
+		for i < len(c8.Stack) {
+			err := c8.Call(0x2FFF)
+			if err != nil {
+				t.Fatalf("failed execute Call: %v", err)
+			}
+			i++
+		}
+		//Try and push data when stack is full.
+		err := c8.Push(0x2FFF)
+		if err == nil {
+			t.Errorf("expected stack limit error; sp: %d; stack: %v", c8.SP, c8.Stack)
+		}
+
+	})
 }
 
 func TestSkipEqualVal(t *testing.T) {
@@ -232,7 +247,6 @@ func TestSkipEqualReg(t *testing.T) {
 }
 
 func TestLoadValue(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -262,7 +276,6 @@ func TestLoadValue(t *testing.T) {
 }
 
 func TestAddValue(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -306,7 +319,6 @@ func TestAddValue(t *testing.T) {
 }
 
 func TestLoadReg(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -324,11 +336,8 @@ func TestLoadReg(t *testing.T) {
 				treg{reg: 0x0A, value: 5},
 				treg{reg: 0x02, value: 15}},
 			expected: treg{reg: 0x0A, value: 0x0F}, expectErr: false},
-		{name: "Invalid Instruction", inst: 0x2AEB,
-			reg: []treg{
-				treg{reg: 0x03, value: 10},
-				treg{reg: 0x0E, value: 10}},
-			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid LoadReg Instruction", inst: 0x8AEB, expectErr: true},
 	}
 
 	for _, tc := range tt {
@@ -352,7 +361,6 @@ func TestLoadReg(t *testing.T) {
 }
 
 func TestOr(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -370,11 +378,8 @@ func TestOr(t *testing.T) {
 				treg{reg: 0x0A, value: 150},
 				treg{reg: 0x02, value: 95}},
 			expected: treg{reg: 0x0A, value: 223}, expectErr: false},
-		{name: "Invalid Instruction", inst: 0x2AEB,
-			reg: []treg{
-				treg{reg: 0x03, value: 10},
-				treg{reg: 0x0E, value: 10}},
-			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid Or Instruction", inst: 0x8AEB, expectErr: true},
 	}
 
 	for _, tc := range tt {
@@ -398,7 +403,6 @@ func TestOr(t *testing.T) {
 }
 
 func TestAnd(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -416,11 +420,8 @@ func TestAnd(t *testing.T) {
 				treg{reg: 0x0A, value: 150},
 				treg{reg: 0x02, value: 95}},
 			expected: treg{reg: 0x0A, value: 22}, expectErr: false},
-		{name: "Invalid Instruction", inst: 0x2AEB,
-			reg: []treg{
-				treg{reg: 0x03, value: 10},
-				treg{reg: 0x0E, value: 10}},
-			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid And Instruction", inst: 0x8AEB, expectErr: true},
 	}
 
 	for _, tc := range tt {
@@ -444,7 +445,6 @@ func TestAnd(t *testing.T) {
 }
 
 func TestXor(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -462,11 +462,8 @@ func TestXor(t *testing.T) {
 				treg{reg: 0x0A, value: 150},
 				treg{reg: 0x02, value: 95}},
 			expected: treg{reg: 0x0A, value: 201}, expectErr: false},
-		{name: "Invalid Instruction", inst: 0x2AEB,
-			reg: []treg{
-				treg{reg: 0x03, value: 10},
-				treg{reg: 0x0E, value: 10}},
-			expected: treg{reg: 0x03, value: 0xFF}, expectErr: true},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid Xor Instruction", inst: 0x8AEB, expectErr: true},
 	}
 
 	for _, tc := range tt {
@@ -490,7 +487,6 @@ func TestXor(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-
 	tt := []struct {
 		name      string
 		inst      uint16
@@ -514,14 +510,8 @@ func TestAdd(t *testing.T) {
 				{reg: 0x0A, value: 0xFE},
 				{reg: 0x0F, value: 1}},
 			expectErr: false},
-		{name: "Invalid Instruction", inst: 0x2AEB,
-			reg: []treg{
-				treg{reg: 0x03, value: 10},
-				treg{reg: 0x0E, value: 10}},
-			expected: []treg{
-				{reg: 0x0A, value: 255},
-				{reg: 0x0F, value: 1}},
-			expectErr: true},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid Add Instruction", inst: 0x8AEB, expectErr: true},
 	}
 
 	for _, tc := range tt {
@@ -541,6 +531,279 @@ func TestAdd(t *testing.T) {
 				if c8.V[r.reg] != r.value {
 					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
 				}
+			}
+		})
+	}
+}
+
+func TestSub(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  []treg
+		expectErr bool
+	}{
+		{name: "Sub X > Y", inst: 0x87B5,
+			reg: []treg{
+				treg{reg: 0x07, value: 187},
+				treg{reg: 0x0B, value: 25}},
+			expected: []treg{
+				{reg: 0x07, value: 162},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Sub X == Y", inst: 0x8A25,
+			reg: []treg{
+				treg{reg: 0x0A, value: 255},
+				treg{reg: 0x02, value: 255}},
+			expected: []treg{
+				{reg: 0x0A, value: 0},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "Sub X < Y", inst: 0x8A25,
+			reg: []treg{
+				treg{reg: 0x0A, value: 13},
+				treg{reg: 0x02, value: 160}},
+			expected: []treg{
+				{reg: 0x0A, value: 109},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid Sub Instruction", inst: 0x8AEB, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.Sub(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Sub: %v", err)
+			}
+			for _, r := range tc.expected {
+				if c8.V[r.reg] != r.value {
+					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
+				}
+			}
+		})
+	}
+}
+
+func TestShiftRight(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  []treg
+		expectErr bool
+	}{
+		{name: "Shift 209 w/Carry", inst: 0x87B6,
+			reg: []treg{
+				treg{reg: 0x07, value: 209}},
+			expected: []treg{
+				{reg: 0x07, value: 104},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Shift 250 w/o Carry", inst: 0x8A26,
+			reg: []treg{
+				treg{reg: 0x0A, value: 250}},
+			expected: []treg{
+				{reg: 0x0A, value: 125},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "Shift 13 w/Carry", inst: 0x8A26,
+			reg: []treg{
+				treg{reg: 0x0A, value: 13}},
+			expected: []treg{
+				{reg: 0x0A, value: 6},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid ShiftRight Instruction", inst: 0x8AEB, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.ShiftRight(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Sub: %v", err)
+			}
+			for _, r := range tc.expected {
+				if c8.V[r.reg] != r.value {
+					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
+				}
+			}
+		})
+	}
+}
+
+func TestSubN(t *testing.T) {
+
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  []treg
+		expectErr bool
+	}{
+		{name: "SubN X > Y", inst: 0x87B7,
+			reg: []treg{
+				treg{reg: 0x07, value: 187},
+				treg{reg: 0x0B, value: 25}},
+			expected: []treg{
+				{reg: 0x07, value: 0x5E},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "SubN X == Y", inst: 0x8A27,
+			reg: []treg{
+				treg{reg: 0x0A, value: 255},
+				treg{reg: 0x02, value: 255}},
+			expected: []treg{
+				{reg: 0x0A, value: 0},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "SubN X < Y", inst: 0x8A27,
+			reg: []treg{
+				treg{reg: 0x0A, value: 13},
+				treg{reg: 0x02, value: 160}},
+			expected: []treg{
+				{reg: 0x0A, value: 147},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid SubN Instruction", inst: 0x8AEB, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.SubN(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Sub: %v", err)
+			}
+			for _, r := range tc.expected {
+				if c8.V[r.reg] != r.value {
+					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
+				}
+			}
+		})
+	}
+}
+
+func TestShiftLeft(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  []treg
+		expectErr bool
+	}{
+		{name: "Shift 209 w/Carry", inst: 0x87BE,
+			reg: []treg{
+				treg{reg: 0x07, value: 209}},
+			expected: []treg{
+				{reg: 0x07, value: 0xA2},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Shift 50 w/o Carry", inst: 0x8A2E,
+			reg: []treg{
+				treg{reg: 0x0A, value: 50}},
+			expected: []treg{
+				{reg: 0x0A, value: 100},
+				{reg: 0x0F, value: 0}},
+			expectErr: false},
+		{name: "Shift 255 w/Carry", inst: 0x8A2E,
+			reg: []treg{
+				treg{reg: 0x0A, value: 255}},
+			expected: []treg{
+				{reg: 0x0A, value: 0xFE},
+				{reg: 0x0F, value: 1}},
+			expectErr: false},
+		{name: "Invalid Set Instruction", inst: 0x2AEB, expectErr: true},
+		{name: "Invalid ShiftLeft Instruction", inst: 0x8AEB, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.ShiftLeft(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Sub: %v", err)
+			}
+			for _, r := range tc.expected {
+				if c8.V[r.reg] != r.value {
+					t.Errorf("reg: V%x; expected: %x; got: %x", r.reg, r.value, c8.V[r.reg])
+				}
+			}
+		})
+	}
+}
+
+func TestSkipNotEqualReg(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  uint16
+		expectErr bool
+	}{
+		{name: "Equal reg/reg.", inst: 0x91E0,
+			reg: []treg{
+				treg{reg: 0x01, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: PCInit, expectErr: false},
+		{name: "Unequal reg/reg", inst: 0x92E0,
+			reg: []treg{
+				treg{reg: 0x02, value: 10},
+				treg{reg: 0x0E, value: 11}},
+			expected: PCInit + 1, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2FFF,
+			reg: []treg{
+				treg{reg: 0x01, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: PCInit, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.SkipNotEqualReg(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute SkipNotEqualReg: %v", err)
+			}
+			if c8.PC != tc.expected {
+				t.Errorf("expected: %x; got: %x", tc.expected, c8.PC)
 			}
 		})
 	}
