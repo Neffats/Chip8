@@ -808,3 +808,32 @@ func TestSkipNotEqualReg(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadI(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		expected  uint16
+		expectErr bool
+	}{
+		{name: "Load 0x0FFF", inst: 0xAFFF, expected: 0x0FFF, expectErr: false},
+		{name: "Load 0x0AEB", inst: 0xAAEB, expected: 0x0AEB, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB, expected: 0, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			err := c8.LoadI(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute LoadValue: %v", err)
+			}
+			if c8.I != tc.expected {
+				t.Errorf("expected: %x; got: %x", tc.expected, c8.I)
+			}
+		})
+	}
+}

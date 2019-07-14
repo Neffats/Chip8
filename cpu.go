@@ -115,6 +115,9 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Skip next instruction if Vx != Vy.
 	case 0x9000:
 		return func() error { return c.SkipNotEqualReg(inst) }, nil
+	//Set I = nnn.
+	case 0xA000:
+		return func() error { return c.LoadI(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }

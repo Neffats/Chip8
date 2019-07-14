@@ -301,3 +301,16 @@ func (c *CPU) SkipNotEqualReg(inst uint16) error {
 
 	return nil
 }
+
+//LoadI sets the I register to the specified address.
+//Instruction Format: Annn
+func (c *CPU) LoadI(inst uint16) error {
+	if check := CheckInst(inst, 0xA000); !check {
+		return fmt.Errorf("received invalid LoadI instruction: %x", inst)
+	}
+
+	addr := inst & 0x0FFF
+	c.I = addr
+
+	return nil
+}
