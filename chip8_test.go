@@ -837,3 +837,46 @@ func TestLoadI(t *testing.T) {
 		})
 	}
 }
+
+func TestJumpWithReg(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		reg       []treg
+		expected  uint16
+		expectErr bool
+	}{
+		{name: "Jump 0x1E0 + 50.", inst: 0xB1E0,
+			reg: []treg{
+				treg{reg: 0x00, value: 50}},
+			expected: 0x212, expectErr: false},
+		{name: "Jump 0xFEF + 164", inst: 0xBFEF,
+			reg: []treg{
+				treg{reg: 0x00, value: 164}},
+			expected: 0x1093, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2FFF,
+			reg: []treg{
+				treg{reg: 0x01, value: 10},
+				treg{reg: 0x0E, value: 10}},
+			expected: PCInit, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for _, r := range tc.reg {
+				c8.V[r.reg] = r.value
+			}
+			err := c8.JumpWithReg(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute JumpWithReg: %v", err)
+			}
+			if c8.PC != tc.expected {
+				t.Errorf("expected: %x; got: %x", tc.expected, c8.PC)
+			}
+		})
+	}
+}

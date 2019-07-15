@@ -24,3 +24,5 @@ Set surface pixels.
 [https://stackoverflow.com/questions/48734398/how-can-i-read-write-pixels-in-a-sdl-surface-in-sdl2]
 
 [https://gamedev.stackexchange.com/questions/38186/trying-to-figure-out-sdl-pixel-manipulation]
+
+[https://stackoverflow.com/questions/6852055/how-can-i-modify-pixels-using-sdl]

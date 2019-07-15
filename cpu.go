@@ -12,7 +12,7 @@ const (
 	SPInit = uint8(16)
 )
 
-//CPU for Chip8 VM
+//CPU for Chip8 VM.
 type CPU struct {
 	PC uint16
 	I  uint16
@@ -26,7 +26,7 @@ type CPU struct {
 	V [16]uint8
 }
 
-//NewCPU returns a new CPU blank struct
+//NewCPU returns a new CPU blank struct.
 func NewCPU(m memory) *CPU {
 	return &CPU{
 		PC:     PCInit,
@@ -40,14 +40,14 @@ func NewCPU(m memory) *CPU {
 func (c *CPU) Fetch() (uint16, error) {
 	var inst []byte
 
-	//Retrieve first byte of instruction
+	//Retrieve first byte of instruction.
 	i, err := c.Memory.Read(c.PC)
 	if err != nil {
 		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch first byte of instruction: %v", err)
 	}
 	inst = append(inst, i)
 
-	//Retrieve last byte of instruction
+	//Retrieve last byte of instruction.
 	i, err = c.Memory.Read(c.PC)
 	if err != nil {
 		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch last byte of instruction: %v", err)
@@ -57,7 +57,7 @@ func (c *CPU) Fetch() (uint16, error) {
 	return binary.BigEndian.Uint16(inst), nil
 }
 
-//Decode the instruction and return the relevant handler function
+//Decode the instruction and return the relevant handler function.
 func (c *CPU) Decode(inst uint16) (func() error, error) {
 	switch op := inst & 0xF000; op {
 	//Jump to location nnn.
@@ -118,11 +118,14 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Set I = nnn.
 	case 0xA000:
 		return func() error { return c.LoadI(inst) }, nil
+	//Jump to location nnn + V0.
+	case 0xB000:
+		return func() error { return c.JumpWithReg(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }
 
-//Push data onto stack and decrement stack pointer
+//Push data onto stack and decrement stack pointer.
 func (c *CPU) Push(data uint16) error {
 	c.SP--
 	//Check if the stack is full.
@@ -133,7 +136,7 @@ func (c *CPU) Push(data uint16) error {
 	return nil
 }
 
-//Pop top value off stack and increment stack pointer
+//Pop top value off stack and increment stack pointer.
 func (c *CPU) Pop() (uint16, error) {
 	if c.SP > SPInit {
 		return 0, fmt.Errorf("no data in stack to pop")

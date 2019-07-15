@@ -314,3 +314,16 @@ func (c *CPU) LoadI(inst uint16) error {
 
 	return nil
 }
+
+//JumpWithReg - Jump/Set PC to location nnn + V0.
+//Instruction Format: Bnnn
+func (c *CPU) JumpWithReg(inst uint16) error {
+	if check := CheckInst(inst, 0xB000); !check {
+		return fmt.Errorf("received invalid JumpWithReg instruction: %x", inst)
+	}
+
+	addr := inst & 0x0FFF
+	c.PC = addr + uint16(c.V[0])
+
+	return nil
+}
