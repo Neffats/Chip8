@@ -121,6 +121,9 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Jump to location nnn + V0.
 	case 0xB000:
 		return func() error { return c.JumpWithReg(inst) }, nil
+	//Set Vx = random byte AND kk.
+	case 0xC000:
+		return func() error { return c.RandomAnd(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }

@@ -880,3 +880,32 @@ func TestJumpWithReg(t *testing.T) {
 		})
 	}
 }
+
+func TestRandomAnd(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		expected  treg
+		expectErr bool
+	}{
+		{name: "v5 - 155", inst: 0xC59B, expected: treg{reg: 0x05, value: 155}, expectErr: false},
+		{name: "vA - 255", inst: 0xCAFF, expected: treg{reg: 0x0A, value: 255}, expectErr: false},
+		{name: "Invalid Instruction", inst: 0x2AEB, expectErr: true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			err := c8.RandomAnd(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute Or: %v", err)
+			}
+			if c8.V[tc.expected.reg] == tc.expected.value {
+				t.Errorf("expected not to get: %x; got: %x", tc.expected.value, c8.V[tc.expected.reg])
+			}
+		})
+	}
+}

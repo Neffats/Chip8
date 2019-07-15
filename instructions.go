@@ -1,6 +1,10 @@
 package chip8
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 //CheckInst returns true if the msb of instruction matches expected.
 func CheckInst(inst uint16, expected uint16) bool {
@@ -324,6 +328,23 @@ func (c *CPU) JumpWithReg(inst uint16) error {
 
 	addr := inst & 0x0FFF
 	c.PC = addr + uint16(c.V[0])
+
+	return nil
+}
+
+//RandomAnd takes a byte (kk) AND's it with a random byte and stores in specified reg (x).
+//Instruction Format: Cxkk
+func (c *CPU) RandomAnd(inst uint16) error {
+	if check := CheckInst(inst, 0xC000); !check {
+		return fmt.Errorf("received invalid RandomAnd instruction: %x", inst)
+	}
+
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	v := inst & 0x00FF
+	regX := (inst & 0x0F00) >> 8
+
+	c.V[regX] = uint8(v) & uint8(rand.Int31())
 
 	return nil
 }
