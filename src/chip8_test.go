@@ -14,6 +14,8 @@ func setup() *CPU {
 	return NewCPU(m)
 }
 
+// TODO: Split unit tests into seperate files.
+
 func TestPush(t *testing.T) {
 	tt := []struct {
 		name      string
