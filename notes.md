@@ -13,6 +13,14 @@
 
 Set surface pixels.
 
+Use rects like this: [https://github.com/berserkingyadis/chippyJ/blob/master/src/main/java/app/Display.java#L38] 
+
+Use a scale factor for w and h.
+
+FillRect docs:
+ - [https://godoc.org/github.com/veandco/go-sdl2/sdl#Surface.FillRect]
+ - [https://godoc.org/github.com/veandco/go-sdl2/sdl#Rect]
+
 #### Links:
 
 [https://wiki.libsdl.org/SDL_Surface]
