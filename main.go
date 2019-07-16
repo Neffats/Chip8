@@ -3,7 +3,8 @@ package main
 import chip8 "Github/Chip8/src"
 
 func main() {
-	g := chip8.Graphics{}
+	m := chip8.Memory{}
+	g := chip8.NewGraphics(m)
 
 	err := g.Init()
 	if err != nil {
