@@ -17,20 +17,23 @@ type CPU struct {
 	PC uint16
 	I  uint16
 
+	G *Graphics
+
 	Stack [16]uint16
 	SP    uint8
 
-	Memory memory
+	Memory *Memory
 
 	// Registers
 	V [16]uint8
 }
 
 //NewCPU returns a new CPU blank struct.
-func NewCPU(m memory) *CPU {
+func NewCPU(m *Memory, g *Graphics) *CPU {
 	return &CPU{
 		PC:     PCInit,
 		I:      0,
+		G:      g,
 		SP:     SPInit,
 		Memory: m,
 	}
