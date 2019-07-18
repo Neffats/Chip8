@@ -142,3 +142,9 @@ func (g *Graphics) Draw(x int32, y int32, n uint8, addr uint16) (bool, error) {
 
 	return collision, nil
 }
+
+//Destroy the graphics window.
+func (g *Graphics) Destroy() {
+	sdl.Quit()
+	g.window.Destroy()
+}

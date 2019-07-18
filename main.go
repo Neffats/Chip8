@@ -3,6 +3,8 @@ package main
 import (
 	chip8 "Github/Chip8/src"
 	"fmt"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 func main() {
@@ -25,10 +27,28 @@ func main() {
 		panic(err)
 	}
 
-	err = g.Run()
+	defer g.Destroy()
+
+	running := true
+	for running {
+		err := g.PaintSurface()
+		if err != nil {
+			fmt.Printf("could not paint surface: %v", err)
+		}
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				running = false
+				break
+			}
+		}
+	}
+
+	/*err = g.Run()
 	if err != nil {
 		panic(err)
-	}
+	}*/
 
 }
 
