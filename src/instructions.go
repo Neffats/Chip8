@@ -348,3 +348,28 @@ func (c *CPU) RandomAnd(inst uint16) error {
 
 	return nil
 }
+
+//DrawSprite displays n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+//Instruction Format: Dxyn
+func (c *CPU) DrawSprite(inst uint16) error {
+	if check := CheckInst(inst, 0xD000); !check {
+		return fmt.Errorf("received invalid RandomAnd instruction: %x", inst)
+	}
+
+	x := int32((inst & 0x0F00) >> 8)
+	y := int32((inst & 0x00F0) >> 4)
+	size := uint8(inst & 0x000F)
+
+	collision, err := c.G.Draw(x, y, size, c.I)
+	if err != nil {
+		return fmt.Errorf("could not draw sprite onto screen: %v", err)
+	}
+
+	if collision {
+		c.V[0xF] = 1
+	} else {
+		c.V[0xF] = 0
+	}
+
+	return nil
+}

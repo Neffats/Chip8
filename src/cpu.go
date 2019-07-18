@@ -127,6 +127,9 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Set Vx = random byte AND kk.
 	case 0xC000:
 		return func() error { return c.RandomAnd(inst) }, nil
+	//Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+	case 0xD000:
+		return func() error { return c.DrawSprite(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }

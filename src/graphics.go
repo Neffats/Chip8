@@ -37,12 +37,10 @@ type Graphics struct {
 //NewGraphics returns a new graphics struct with initialised values.
 func NewGraphics(mem *Memory) *Graphics {
 	return &Graphics{
-		m:        mem,
-		w:        ScreenWidth,
-		h:        ScreenHeight,
-		scale:    ScreenScale,
-		fgColour: color.RGBA{R: 255, G: 255, B: 255, A: 1},
-		bgColour: color.RGBA{R: 0, G: 0, B: 0, A: 1},
+		m:     mem,
+		w:     ScreenWidth,
+		h:     ScreenHeight,
+		scale: ScreenScale,
 	}
 }
 
@@ -59,14 +57,6 @@ func (g *Graphics) Init() error {
 	if err != nil {
 		return fmt.Errorf("could not create sdl window: %v", err)
 	}
-
-	/*
-		for i := 0; i < int(g.w); i++ {
-			for j := 0; j < int(g.h); j++ {
-				g.screen[i][j] = 1
-			}
-		}
-	*/
 
 	g.surface, err = g.window.GetSurface()
 	if err != nil {
@@ -117,11 +107,11 @@ func (g *Graphics) PaintSurface() error {
 }
 
 //Draw sprites onto the screen.
-func (g *Graphics) Draw(w int32, h int32, n uint8, addr uint16) (bool, error) {
+func (g *Graphics) Draw(x int32, y int32, n uint8, addr uint16) (bool, error) {
 	a := addr & 0x0FFF
 
 	var sprite []uint8
-	carry := false
+	collision := false
 
 	//Read the sprite data from memory.
 	for i := 0; i < int(n); i++ {
@@ -136,19 +126,19 @@ func (g *Graphics) Draw(w int32, h int32, n uint8, addr uint16) (bool, error) {
 
 	g.screenmux.Lock()
 	defer g.screenmux.Unlock()
-	for screenh := 0; screenh < len(sprite); screenh++ {
-		for screenw := 0; screenw < len(sprite); screenw++ {
-			pixel := (sprite[screenh] >> uint8((7 - screenw))) & 0x01
+	for screeny := 0; screeny < len(sprite); screeny++ {
+		for screenx := 0; screenx < len(sprite); screenx++ {
+			pixel := (sprite[screeny] >> uint8((7 - screenx))) & 0x01
 
 			//Check if any bits will get flipped.
-			if pixel != g.screen[(w+int32(screenw))%g.w][(h+int32(screenh))%g.h] {
-				carry = true
+			if pixel != g.screen[(x+int32(screenx))%g.w][(y+int32(screeny))%g.h] {
+				collision = true
 			}
 
 			//Xor screen pixel with sprite pixel, modulo there for wrap around.
-			g.screen[(w+int32(screenw))%g.w][(h+int32(screenh))%g.h] ^= pixel
+			g.screen[(x+int32(screenx))%g.w][(y+int32(screeny))%g.h] ^= pixel
 		}
 	}
 
-	return carry, nil
+	return collision, nil
 }
