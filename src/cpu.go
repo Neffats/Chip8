@@ -41,11 +41,12 @@ func NewCPU(m *Memory, g *Graphics) *CPU {
 	}
 }
 
+//Run is the main loop for the Chip8 emulator.
 func (c *CPU) Run() error {
 	running := true
+	keys := sdl.GetKeyboardState()
 	for running {
 		inst, err := c.Fetch()
-		fmt.Printf("%x\n", c.PC)
 		if err != nil {
 			return fmt.Errorf("could not fetch instruction: %v", err)
 		}
@@ -62,6 +63,11 @@ func (c *CPU) Run() error {
 		if err != nil {
 			return fmt.Errorf("could not paint surface: %v", err)
 		}
+
+		if keys[sdl.K_r] == 1 {
+			fmt.Println("Pressed!")
+		}
+
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch event.(type) {
 			case *sdl.QuitEvent:

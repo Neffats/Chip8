@@ -1,10 +1,11 @@
 package main
 
 import (
-	chip8 "Github/Chip8/src"
 	"flag"
 	"fmt"
 	"os"
+
+	chip8 "github.com/Neffats/Chip8/src"
 )
 
 func GetFile(filename string) ([]byte, error) {
