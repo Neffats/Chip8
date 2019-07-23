@@ -2,16 +2,47 @@ package main
 
 import (
 	chip8 "Github/Chip8/src"
+	"flag"
 	"fmt"
-
-	"github.com/veandco/go-sdl2/sdl"
+	"os"
 )
 
+func GetFile(filename string) ([]byte, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %v", err)
+
+	}
+	defer file.Close()
+
+	fileinfo, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("could not get file info: %v", err)
+
+	}
+
+	filesize := fileinfo.Size()
+	buffer := make([]byte, filesize)
+
+	_, err = file.Read(buffer)
+	if err != nil {
+		return nil, fmt.Errorf("could not read bytes into buffer: %v", err)
+	}
+
+	return buffer, nil
+}
+
 func main() {
+	program := flag.String("program", "", "Chip8 program file.")
+	flag.Parse()
+
+	ProgramData, err := GetFile(*program)
+
 	m := chip8.Memory{}
 	g := chip8.NewGraphics(&m)
+	c := chip8.NewCPU(&m, g)
 
-	err := setupMemory(&m)
+	err = setupMemory(&m)
 	if err != nil {
 		panic(err)
 	}
@@ -20,35 +51,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_, err = g.Draw(10, 10, 5, 0x0000)
-	_, err = g.Draw(15, 10, 5, 0x0005)
-	_, err = g.Draw(20, 10, 5, 0x0005)
-	if err != nil {
-		panic(err)
-	}
-
 	defer g.Destroy()
 
-	running := true
-	for running {
-		err := g.PaintSurface()
-		if err != nil {
-			fmt.Printf("could not paint surface: %v", err)
-		}
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				println("Quit")
-				running = false
-				break
-			}
-		}
-	}
-
-	/*err = g.Run()
+	err = c.LoadProgram(ProgramData)
 	if err != nil {
 		panic(err)
-	}*/
+	}
+
+	err = c.Run()
+	if err != nil {
+		panic(err)
+	}
 
 }
 

@@ -3,6 +3,8 @@ package chip8
 import (
 	"encoding/binary"
 	"fmt"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 const (
@@ -39,6 +41,41 @@ func NewCPU(m *Memory, g *Graphics) *CPU {
 	}
 }
 
+func (c *CPU) Run() error {
+	running := true
+	for running {
+		inst, err := c.Fetch()
+		fmt.Printf("%x\n", c.PC)
+		if err != nil {
+			return fmt.Errorf("could not fetch instruction: %v", err)
+		}
+		handler, err := c.Decode(inst)
+		if err != nil {
+			return fmt.Errorf("could not decode instruction: %v", err)
+		}
+		err = handler()
+		if err != nil {
+			return fmt.Errorf("something went wrong in instruction handler: %v", err)
+		}
+
+		err = c.G.PaintSurface()
+		if err != nil {
+			return fmt.Errorf("could not paint surface: %v", err)
+		}
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				running = false
+				break
+			}
+		}
+
+		c.PC += 2
+	}
+	return nil
+}
+
 //Fetch the instruction the PC is currently pointing at.
 func (c *CPU) Fetch() (uint16, error) {
 	var inst []byte
@@ -46,14 +83,14 @@ func (c *CPU) Fetch() (uint16, error) {
 	//Retrieve first byte of instruction.
 	i, err := c.Memory.Read(c.PC)
 	if err != nil {
-		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch first byte of instruction: %v", err)
+		return 0, fmt.Errorf("could not fetch first byte of instruction: %v", err)
 	}
 	inst = append(inst, i)
 
 	//Retrieve last byte of instruction.
 	i, err = c.Memory.Read(c.PC)
 	if err != nil {
-		return binary.BigEndian.Uint16(inst), fmt.Errorf("could not fetch last byte of instruction: %v", err)
+		return 0, fmt.Errorf("could not fetch last byte of instruction: %v", err)
 	}
 	inst = append(inst, i)
 
@@ -130,6 +167,8 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
 	case 0xD000:
 		return func() error { return c.DrawSprite(inst) }, nil
+	default:
+		return func() error { return c.NotImplemented(inst) }, nil
 	}
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }
@@ -154,4 +193,18 @@ func (c *CPU) Pop() (uint16, error) {
 	c.SP++
 
 	return data, nil
+}
+
+//LoadProgram writes the program to memory.
+func (c *CPU) LoadProgram(program []byte) error {
+	var start uint16
+	start = 512
+	for i, data := range program {
+		addr := uint16(start + uint16(i))
+		err := c.Memory.Write(data, addr)
+		if err != nil {
+			return fmt.Errorf("could not write byte to memory: %v", err)
+		}
+	}
+	return nil
 }

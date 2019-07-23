@@ -55,7 +55,7 @@ func (c *CPU) SkipEqualVal(inst uint16) error {
 	if c.V[reg] == val {
 		// Only increment by one since we'll increment PC again at end of main loop?
 		// TODO: Need to check this.
-		c.PC++
+		c.PC += 2
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (c *CPU) SkipNotEqualVal(inst uint16) error {
 	if c.V[reg] != val {
 		// Only increment by one since we'll increment PC again at end of main loop?
 		// TODO: Need to check this.
-		c.PC++
+		c.PC += 2
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func (c *CPU) SkipEqualReg(inst uint16) error {
 	if c.V[regX] == c.V[regY] {
 		// Only increment by one since we'll increment PC again at end of main loop?
 		// TODO: Need to check this.
-		c.PC++
+		c.PC += 2
 	}
 	return nil
 }
@@ -300,7 +300,7 @@ func (c *CPU) SkipNotEqualReg(inst uint16) error {
 	if c.V[regX] != c.V[regY] {
 		// Only increment by one since we'll increment PC again at end of main loop?
 		// TODO: Need to check this.
-		c.PC++
+		c.PC += 2
 	}
 
 	return nil
@@ -371,5 +371,10 @@ func (c *CPU) DrawSprite(inst uint16) error {
 		c.V[0xF] = 0
 	}
 
+	return nil
+}
+
+func (c *CPU) NotImplemented(inst uint16) error {
+	//fmt.Printf("Instruction not implemented: %x\n", inst)
 	return nil
 }
