@@ -19,7 +19,8 @@ type CPU struct {
 	PC uint16
 	I  uint16
 
-	G *Graphics
+	G     *Graphics
+	Input *Input
 
 	Stack [16]uint16
 	SP    uint8
@@ -31,11 +32,12 @@ type CPU struct {
 }
 
 //NewCPU returns a new CPU blank struct.
-func NewCPU(m *Memory, g *Graphics) *CPU {
+func NewCPU(m *Memory, g *Graphics, in *Input) *CPU {
 	return &CPU{
 		PC:     PCInit,
 		I:      0,
 		G:      g,
+		Input:  in,
 		SP:     SPInit,
 		Memory: m,
 	}
@@ -173,6 +175,20 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	//Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
 	case 0xD000:
 		return func() error { return c.DrawSprite(inst) }, nil
+	case 0xE000:
+		switch t := inst & 0x00FF; t {
+		//Skip next instruction if key with the value of Vx is pressed.
+		case 0x009E:
+			return func() error { return c.SkipIfKey(inst) }, nil
+		//Skip next instruction if key with the value of Vx is not pressed.
+		case 0x00A1:
+			return func() error { return c.SkipIfNotKey(inst) }, nil
+		}
+	case 0xF000:
+		switch t := inst & 0x00FF; t {
+			case 0x000A {
+				//TODO: Implement WaitForKey()
+			}
 	default:
 		return func() error { return c.NotImplemented(inst) }, nil
 	}

@@ -374,6 +374,63 @@ func (c *CPU) DrawSprite(inst uint16) error {
 	return nil
 }
 
+//SkipIfKey skips the next instruction if specified key is pressed.
+//Instruction Format: Ex9E
+func (c *CPU) SkipIfKey(inst uint16) error {
+	if check := CheckInst(inst, 0xE000); !check {
+		return fmt.Errorf("received invalid SkipIfKey instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x009E {
+		return fmt.Errorf("received invalid SkipIfKey instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+
+	k, err := c.Input.IsPressed(c.V[reg])
+	if err != nil {
+		return fmt.Errorf("could not read key state: %v", err)
+	}
+	if k {
+		c.PC += 2
+	}
+
+	return nil
+}
+
+//SkipIfNotKey skips the next instruction if specified key is not pressed.
+//Instruction Format: ExA1
+func (c *CPU) SkipIfNotKey(inst uint16) error {
+	if check := CheckInst(inst, 0xE000); !check {
+		return fmt.Errorf("received invalid SkipIfNotKey instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x00A1 {
+		return fmt.Errorf("received invalid SkipIfNotKey instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+
+	k, err := c.Input.IsPressed(c.V[reg])
+	if err != nil {
+		return fmt.Errorf("could not read key state: %v", err)
+	}
+	if !k {
+		c.PC += 2
+	}
+
+	return nil
+}
+
+func (c *CPU) WaitForKey(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid WaitForKey instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x000A {
+		return fmt.Errorf("received invalid WaitForKey instruction: %x", inst)
+	}
+
+	return nil
+}
+
 func (c *CPU) NotImplemented(inst uint16) error {
 	//fmt.Printf("Instruction not implemented: %x\n", inst)
 	return nil
