@@ -428,6 +428,8 @@ func (c *CPU) WaitForKey(inst uint16) error {
 		return fmt.Errorf("received invalid WaitForKey instruction: %x", inst)
 	}
 
+	_, _ = c.Input.WaitForKey()
+
 	return nil
 }
 

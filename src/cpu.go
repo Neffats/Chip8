@@ -46,12 +46,12 @@ func NewCPU(m *Memory, g *Graphics, in *Input) *CPU {
 //Run is the main loop for the Chip8 emulator.
 func (c *CPU) Run() error {
 	running := true
-	keys := sdl.GetKeyboardState()
 	for running {
 		inst, err := c.Fetch()
 		if err != nil {
 			return fmt.Errorf("could not fetch instruction: %v", err)
 		}
+		fmt.Printf("Instruction: %x\n", inst)
 		handler, err := c.Decode(inst)
 		if err != nil {
 			return fmt.Errorf("could not decode instruction: %v", err)
@@ -64,10 +64,6 @@ func (c *CPU) Run() error {
 		err = c.G.PaintSurface()
 		if err != nil {
 			return fmt.Errorf("could not paint surface: %v", err)
-		}
-
-		if keys[sdl.K_r] == 1 {
-			fmt.Println("Pressed!")
 		}
 
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -96,7 +92,7 @@ func (c *CPU) Fetch() (uint16, error) {
 	inst = append(inst, i)
 
 	//Retrieve last byte of instruction.
-	i, err = c.Memory.Read(c.PC)
+	i, err = c.Memory.Read(c.PC + 1)
 	if err != nil {
 		return 0, fmt.Errorf("could not fetch last byte of instruction: %v", err)
 	}
@@ -183,15 +179,20 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Skip next instruction if key with the value of Vx is not pressed.
 		case 0x00A1:
 			return func() error { return c.SkipIfNotKey(inst) }, nil
+		default:
+			return func() error { return c.NotImplemented(inst) }, nil
 		}
+
 	case 0xF000:
 		switch t := inst & 0x00FF; t {
-			case 0x000A {
-				//TODO: Implement WaitForKey()
-			}
+		case 0x000A:
+			//TODO: Implement WaitForKey()
+			return func() error { return c.WaitForKey(inst) }, nil
+		}
 	default:
 		return func() error { return c.NotImplemented(inst) }, nil
 	}
+
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
 }
 

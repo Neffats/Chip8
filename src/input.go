@@ -13,6 +13,12 @@ type Input struct {
 	keymap map[uint8]uint8
 }
 
+//NewInput returns an empty uninitialised Input struct.
+//Should I init() here?
+func NewInput() *Input {
+	return &Input{}
+}
+
 //Init sets up the keys array.
 func (i *Input) Init() error {
 	//Only have to call once.
@@ -54,7 +60,15 @@ func (i *Input) IsPressed(key uint8) (bool, error) {
 
 //WaitForKey will loop and do nothing until specified key is pressed.
 func (i *Input) WaitForKey() (uint8, error) {
-	for i.keys[i.keymap[key]] != 1 {
+
+	for event := sdl.WaitEvent(); event != nil; event = sdl.WaitEvent() {
+		switch t := event.(type) {
+		case *sdl.KeyboardEvent:
+			if k := t.GetType(); k == sdl.KEYDOWN {
+				fmt.Printf("Key event: %v\n", t.Keysym.Sym)
+				return 0, nil
+			}
+		}
 	}
 	return 0, nil
 }
