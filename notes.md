@@ -36,4 +36,8 @@ FillRect docs:
 [https://stackoverflow.com/questions/6852055/how-can-i-modify-pixels-using-sdl]
 
 ## TODO
-  - [ ] Implement interfaces for graphics and input modules, will make it easier to test.
+- [ ] Implement timer module.
+    - [https://golang.org/pkg/time/#Ticker]
+- [ ] Finish implementing instructions.
+- [ ] Implement interfaces for graphics and input modules, will make it easier to test.
+    - Reference [https://gist.github.com/jorygeerts/e887856cc15b64cb9681639cd83c4a37]
