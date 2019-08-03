@@ -185,6 +185,7 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 
 	case 0xF000:
 		switch t := inst & 0x00FF; t {
+		//Wait for a key press, store the value of the key in Vx.
 		case 0x000A:
 			return func() error { return c.WaitForKey(inst) }, nil
 		}
