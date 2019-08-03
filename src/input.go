@@ -3,6 +3,7 @@ package chip8
 import (
 	"fmt"
 
+	"github.com/Neffats/bimap"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -10,7 +11,7 @@ import (
 type Input struct {
 	keys []uint8
 
-	keymap map[uint8]uint8
+	keymap *bimap.Uint8
 }
 
 //NewInput returns an empty uninitialised Input struct.
@@ -25,24 +26,24 @@ func (i *Input) Init() error {
 	i.keys = sdl.GetKeyboardState()
 
 	//Set up the keyboard translation mappings.
-	i.keymap = map[uint8]uint8{
-		0x1: sdl.K_1,
-		0x2: sdl.K_2,
-		0x3: sdl.K_3,
-		0xC: sdl.K_4,
-		0x4: sdl.K_q,
-		0x5: sdl.K_w,
-		0x6: sdl.K_e,
-		0xD: sdl.K_r,
-		0x7: sdl.K_a,
-		0x8: sdl.K_s,
-		0x9: sdl.K_d,
-		0xE: sdl.K_f,
-		0xA: sdl.K_BACKSLASH,
-		0x0: sdl.K_z,
-		0xB: sdl.K_x,
-		0xF: sdl.K_c,
-	}
+	i.keymap = bimap.NewUint8()
+
+	i.keymap.Put(0x1, uint8(sdl.K_1))
+	i.keymap.Put(0x2, uint8(sdl.K_2))
+	i.keymap.Put(0x3, uint8(sdl.K_3))
+	i.keymap.Put(0xC, uint8(sdl.K_4))
+	i.keymap.Put(0x4, uint8(sdl.K_q))
+	i.keymap.Put(0x5, uint8(sdl.K_w))
+	i.keymap.Put(0x6, uint8(sdl.K_e))
+	i.keymap.Put(0xD, uint8(sdl.K_r))
+	i.keymap.Put(0x7, uint8(sdl.K_a))
+	i.keymap.Put(0x8, uint8(sdl.K_s))
+	i.keymap.Put(0x9, uint8(sdl.K_d))
+	i.keymap.Put(0xE, uint8(sdl.K_f))
+	i.keymap.Put(0xA, uint8(sdl.K_BACKSLASH))
+	i.keymap.Put(0x0, uint8(sdl.K_z))
+	i.keymap.Put(0xB, uint8(sdl.K_x))
+	i.keymap.Put(0xF, uint8(sdl.K_c))
 
 	return nil
 }
@@ -52,7 +53,11 @@ func (i *Input) IsPressed(key uint8) (bool, error) {
 	if key > 0xF {
 		return false, fmt.Errorf("key out of bounds: %x", key)
 	}
-	if i.keys[i.keymap[key]] == 1 {
+	k, exists := i.keymap.GetByKey(key)
+	if !exists {
+		return false, fmt.Errorf("key received does not exist in keymap: %d", key)
+	}
+	if i.keys[k] == 1 {
 		return true, nil
 	}
 	return false, nil
@@ -65,8 +70,13 @@ func (i *Input) WaitForKey() (uint8, error) {
 		switch t := event.(type) {
 		case *sdl.KeyboardEvent:
 			if k := t.GetType(); k == sdl.KEYDOWN {
-				fmt.Printf("Key event: %v\n", t.Keysym.Sym)
-				return 0, nil
+				key, exists := i.keymap.GetByValue(uint8(t.Keysym.Sym))
+				if !exists {
+					continue
+				}
+				fmt.Printf("SDL Key Pressed: %d\n", uint8(t.Keysym.Sym))
+				fmt.Printf("Local mapping Key Pressed: %d\n", key)
+				return key, nil
 			}
 		}
 	}

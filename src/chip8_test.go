@@ -12,7 +12,8 @@ type treg struct {
 func setup() *CPU {
 	m := Memory{}
 	g := NewGraphics(&m)
-	return NewCPU(&m, g)
+	i := NewInput()
+	return NewCPU(&m, g, i)
 }
 
 // TODO: Split unit tests into seperate files.

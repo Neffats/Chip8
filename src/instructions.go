@@ -420,6 +420,8 @@ func (c *CPU) SkipIfNotKey(inst uint16) error {
 	return nil
 }
 
+//WaitForKey will wait for a key to be pressed, and store the key in the specified x register.
+//Instruction Format: Fx0A
 func (c *CPU) WaitForKey(inst uint16) error {
 	if check := CheckInst(inst, 0xF000); !check {
 		return fmt.Errorf("received invalid WaitForKey instruction: %x", inst)
@@ -428,7 +430,14 @@ func (c *CPU) WaitForKey(inst uint16) error {
 		return fmt.Errorf("received invalid WaitForKey instruction: %x", inst)
 	}
 
-	_, _ = c.Input.WaitForKey()
+	reg := (inst & 0x0F00) >> 8
+
+	key, err := c.Input.WaitForKey()
+	if err != nil {
+		return fmt.Errorf("could not wait for key: %v", err)
+	}
+
+	c.V[reg] = key
 
 	return nil
 }
