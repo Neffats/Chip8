@@ -28,6 +28,7 @@ func (i *Input) Init() error {
 	//Set up the keyboard translation mappings.
 	i.keymap = bimap.NewUint8()
 
+	//TODO: Use a config file to set these mappings up.
 	i.keymap.Put(0x1, uint8(sdl.K_1))
 	i.keymap.Put(0x2, uint8(sdl.K_2))
 	i.keymap.Put(0x3, uint8(sdl.K_3))
@@ -80,5 +81,6 @@ func (i *Input) WaitForKey() (uint8, error) {
 			}
 		}
 	}
-	return 0, nil
+
+	return 0, fmt.Errorf("input could not wait for key, exited the loop unexpectedly")
 }

@@ -41,3 +41,11 @@ FillRect docs:
 - [ ] Finish implementing instructions.
 - [ ] Implement interfaces for graphics and input modules, will make it easier to test.
     - Reference [https://gist.github.com/jorygeerts/e887856cc15b64cb9681639cd83c4a37]
+- [ ] Implement a config file of some sort for keyboard mappings.
+- [ ] Finish implementing unit tests for all the modules.
+    - [ ] CPU
+    - [ ] Instructions
+    - [ ] Memory
+    - [ ] Graphics
+    - [ ] Input
+    - [ ] Timer

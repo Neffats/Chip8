@@ -442,6 +442,7 @@ func (c *CPU) WaitForKey(inst uint16) error {
 	return nil
 }
 
+//NotImplemented is a placeholder while the instructions are finished. Allows the program to emulator.
 func (c *CPU) NotImplemented(inst uint16) error {
 	//fmt.Printf("Instruction not implemented: %x\n", inst)
 	return nil
