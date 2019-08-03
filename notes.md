@@ -34,3 +34,6 @@ FillRect docs:
 [https://gamedev.stackexchange.com/questions/38186/trying-to-figure-out-sdl-pixel-manipulation]
 
 [https://stackoverflow.com/questions/6852055/how-can-i-modify-pixels-using-sdl]
+
+## TODO
+  - [ ] Implement interfaces for graphics and input modules, will make it easier to test.
