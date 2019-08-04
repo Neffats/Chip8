@@ -9,5 +9,6 @@ func setup() *CPU {
 	m := Memory{}
 	g := NewGraphics(&m)
 	i := NewInput()
-	return NewCPU(&m, g, i)
+	dt := NewTimer()
+	return NewCPU(&m, g, i, dt)
 }

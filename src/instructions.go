@@ -482,6 +482,116 @@ func (c *CPU) SetDT(inst uint16) error {
 	return nil
 }
 
+//AddIReg will add the I register with the x register and store the result in I register.
+//Instruction Format: Fx1E
+func (c *CPU) AddIReg(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid AddIReg instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x001E {
+		return fmt.Errorf("received invalid AddIReg instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+
+	c.I += uint16(c.V[reg])
+
+	return nil
+}
+
+//SetISprite sets I register to the address of the hex sprite of the value in register x.
+//Instruction Format: Fx29
+func (c *CPU) SetISprite(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid SetISprite instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0029 {
+		return fmt.Errorf("received invalid SetISprite instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+	if c.V[reg] > 0xF {
+		return fmt.Errorf("value in V[%x] is bigger than 0xF: %d", reg, c.V[reg])
+	}
+	c.I = uint16(c.V[reg] * 5)
+
+	return nil
+}
+
+//SplitDecimal will take the decimal value from register x, split it by "column" (BCD) e.g. 137 > 1 | 3 | 7.
+//Then store the hundreds digit at I, tens digit at I+1 and the ones digit at I+2.
+//Instruction Format: Fx33
+func (c *CPU) SplitDecimal(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid SplitDecimal instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0033 {
+		return fmt.Errorf("received invalid SplitDecimal instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+	dec := c.V[reg]
+
+	hundred := (dec / 100) % 10
+	ten := (dec / 10) % 10
+	one := dec & 10
+
+	c.Memory.Write(byte(hundred), c.I)
+	c.Memory.Write(byte(ten), c.I+1)
+	c.Memory.Write(byte(one), c.I+2)
+
+	return nil
+}
+
+//StoreRegs will save the values of registers 0 through x to memory starting at address I.
+//Instruction Format: Fx55
+func (c *CPU) StoreRegs(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid StoreRegs instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0055 {
+		return fmt.Errorf("received invalid StoreRegs instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+	e := c.V[reg]
+
+	for i := uint8(0); i <= e; i++ {
+		err := c.Memory.Write(byte(c.V[i]), c.I+uint16(i))
+		if err != nil {
+			return fmt.Errorf("could not write reg[%x] to memory address %x: %v", reg, c.I+uint16(i), err)
+		}
+	}
+
+	return nil
+}
+
+//LoadRegs will load the values starting at memory address I into registers 0 through x.
+//Instruction Format: Fx65
+func (c *CPU) LoadRegs(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid LoadRegs instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0065 {
+		return fmt.Errorf("received invalid LoadRegs instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+	e := c.V[reg]
+
+	var err error
+
+	for i := uint16(0); i <= uint16(e); i++ {
+		addr := c.I + i
+		c.V[i], err = c.Memory.Read(addr)
+		if err != nil {
+			return fmt.Errorf("could not read memory address %x into register[%x]: %v", c.I+uint16(i), i, err)
+		}
+	}
+
+	return nil
+}
+
 //NotImplemented is a placeholder while the instructions are finished. Allows the program to emulator.
 func (c *CPU) NotImplemented(inst uint16) error {
 	//fmt.Printf("Instruction not implemented: %x\n", inst)

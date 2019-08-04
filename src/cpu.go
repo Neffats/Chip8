@@ -46,6 +46,65 @@ func NewCPU(m *Memory, g *Graphics, in *Input, dt *Timer) *CPU {
 	}
 }
 
+//Init sets up some inital parameters:
+// - Write hexadecimal sprites to memory.
+func (c *CPU) Init() error {
+	//Sprites representing the hexidescimal characters.
+	sprites := [16][5]byte{
+		//0
+		{0xF0, 0x90, 0x90, 0x90, 0xF0},
+		//1
+		{0x20, 0x60, 0x20, 0x20, 0x70},
+		//2
+		{0xF0, 0x10, 0xF0, 0x80, 0xF0},
+		//3
+		{0xF0, 0x10, 0xF0, 0x10, 0xF0},
+		//4
+		{0x90, 0x90, 0xF0, 0x10, 0x10},
+		//5
+		{0xF0, 0x80, 0xF0, 0x10, 0xF0},
+		//6
+		{0xF0, 0x80, 0xF0, 0x90, 0xF0},
+		//7
+		{0xF0, 0x10, 0x20, 0x40, 0x40},
+		//8
+		{0xF0, 0x90, 0xF0, 0x90, 0xF0},
+		//9
+		{0xF0, 0x90, 0xF0, 0x10, 0xF0},
+		//A
+		{0xF0, 0x90, 0xF0, 0x90, 0x90},
+		//B
+		{0xE0, 0x90, 0xE0, 0x90, 0xE0},
+		//C
+		{0xF0, 0x80, 0x80, 0x80, 0xF0},
+		//D
+		{0xE0, 0x90, 0x90, 0x90, 0xE0},
+		//E
+		{0xF0, 0x80, 0xF0, 0x80, 0xF0},
+		//F
+		{0xF0, 0x80, 0xF0, 0x80, 0x80},
+	}
+
+	addr := uint16(0)
+
+	for _, sp := range sprites {
+		err := c.writeSprite(sp, addr)
+		if err != nil {
+			return fmt.Errorf("could not write sprite %v: %v", sp, err)
+		}
+		addr += 5
+	}
+
+	return nil
+}
+
+func (c *CPU) writeSprite(sprite [5]byte, addr uint16) error {
+	for i := 0; i < len(sprite); i++ {
+		c.Memory.Write(sprite[i], addr+0)
+	}
+	return nil
+}
+
 //Run is the main loop for the Chip8 emulator.
 func (c *CPU) Run() error {
 	running := true
@@ -197,6 +256,21 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Set delay timer = Vx.
 		case 0x0015:
 			return func() error { return c.SetDT(inst) }, nil
+		//Set I = I + Vx.
+		case 0x001E:
+			return func() error { return c.AddIReg(inst) }, nil
+		//Set I = location of sprite for digit Vx.
+		case 0x0029:
+			return func() error { return c.SetISprite(inst) }, nil
+		//Store BCD representation of Vx in memory locations I, I+1, and I+2.
+		case 0x0033:
+			return func() error { return c.SplitDecimal(inst) }, nil
+		//Store registers V0 through Vx in memory starting at location I.
+		case 0x0055:
+			return func() error { return c.StoreRegs(inst) }, nil
+		//Read registers V0 through Vx from memory starting at location I.
+		case 0x0065:
+			return func() error { return c.LoadRegs(inst) }, nil
 		}
 	default:
 		return func() error { return c.NotImplemented(inst) }, nil

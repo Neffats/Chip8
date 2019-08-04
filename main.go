@@ -42,8 +42,9 @@ func main() {
 	m := chip8.Memory{}
 	g := chip8.NewGraphics(&m)
 	in := chip8.NewInput()
+	dt := chip8.NewTimer()
 	in.Init()
-	c := chip8.NewCPU(&m, g, in)
+	c := chip8.NewCPU(&m, g, in, dt)
 
 	err = setupMemory(&m)
 	if err != nil {
