@@ -22,6 +22,8 @@ type CPU struct {
 	G     *Graphics
 	Input *Input
 
+	DT *Timer
+
 	Stack [16]uint16
 	SP    uint8
 
@@ -32,12 +34,13 @@ type CPU struct {
 }
 
 //NewCPU returns a new CPU blank struct.
-func NewCPU(m *Memory, g *Graphics, in *Input) *CPU {
+func NewCPU(m *Memory, g *Graphics, in *Input, dt *Timer) *CPU {
 	return &CPU{
 		PC:     PCInit,
 		I:      0,
 		G:      g,
 		Input:  in,
+		DT:     dt,
 		SP:     SPInit,
 		Memory: m,
 	}
@@ -185,9 +188,15 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 
 	case 0xF000:
 		switch t := inst & 0x00FF; t {
+		//Set Vx = delay timer value.
+		case 0x0007:
+			return func() error { return c.SetRegDT(inst) }, nil
 		//Wait for a key press, store the value of the key in Vx.
 		case 0x000A:
 			return func() error { return c.WaitForKey(inst) }, nil
+		//Set delay timer = Vx.
+		case 0x0015:
+			return func() error { return c.SetDT(inst) }, nil
 		}
 	default:
 		return func() error { return c.NotImplemented(inst) }, nil

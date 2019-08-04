@@ -43,6 +43,5 @@ func TestPush(t *testing.T) {
 		if err == nil {
 			t.Errorf("expected stack limit error; sp: %d; stack: %v", c8.SP, c8.Stack)
 		}
-
 	})
 }

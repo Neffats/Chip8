@@ -442,6 +442,46 @@ func (c *CPU) WaitForKey(inst uint16) error {
 	return nil
 }
 
+//SetRegDT will set the register x to the delay timers current value.
+//Instruction Format: Fx07
+func (c *CPU) SetRegDT(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid SetRegDT instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0007 {
+		return fmt.Errorf("received invalid SetRegDT instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+	t, err := c.DT.Get()
+	if err != nil {
+		return fmt.Errorf("could not get delay timer: %v", err)
+	}
+
+	c.V[reg] = uint8(t)
+	return nil
+}
+
+//SetDT will set the DT to the value of register x.
+//Instruction Format: Fx15
+func (c *CPU) SetDT(inst uint16) error {
+	if check := CheckInst(inst, 0xF000); !check {
+		return fmt.Errorf("received invalid SetDT instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x0015 {
+		return fmt.Errorf("received invalid SetDT instruction: %x", inst)
+	}
+
+	reg := (inst & 0x0F00) >> 8
+
+	err := c.DT.Set(uint(c.V[reg]))
+	if err != nil {
+		return fmt.Errorf("could not set DT: %v", err)
+	}
+
+	return nil
+}
+
 //NotImplemented is a placeholder while the instructions are finished. Allows the program to emulator.
 func (c *CPU) NotImplemented(inst uint16) error {
 	//fmt.Printf("Instruction not implemented: %x\n", inst)
