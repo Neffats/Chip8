@@ -34,7 +34,7 @@ func GetFile(filename string) ([]byte, error) {
 }
 
 func main() {
-	program := flag.String("program", "", "Chip8 program file.")
+	program := flag.String("p", "", "Chip8 program file.")
 	flag.Parse()
 
 	ProgramData, err := GetFile(*program)
@@ -45,11 +45,6 @@ func main() {
 	dt := chip8.NewTimer()
 	in.Init()
 	c := chip8.NewCPU(&m, g, in, dt)
-
-	err = setupMemory(&m)
-	if err != nil {
-		panic(err)
-	}
 
 	err = g.Init()
 	if err != nil {
@@ -64,52 +59,6 @@ func main() {
 
 	err = c.Run()
 	if err != nil {
-		panic(err)
+		c.Panic(err)
 	}
-
-}
-
-func setupMemory(m *chip8.Memory) error {
-	err := m.Write(0xE0, 0x0000)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0x90, 0x0001)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0xE0, 0x0002)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0x90, 0x0003)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0xE0, 0x0004)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-
-	err = m.Write(0xF0, 0x0005)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0x80, 0x0006)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0xF0, 0x0007)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0x80, 0x0008)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	err = m.Write(0xF0, 0x0009)
-	if err != nil {
-		return fmt.Errorf("could not write memory: %v", err)
-	}
-	return nil
 }

@@ -82,6 +82,40 @@ func TestCall(t *testing.T) {
 	})
 }
 
+func TestReturn(t *testing.T) {
+	tt := []struct {
+		name      string
+		inst      uint16
+		stack     []uint16
+		expected  uint16
+		expectErr bool
+	}{
+		//Stack doesn't reset after each test.
+		{name: "Valid Address 003", inst: 0x00EE, stack: []uint16{0x0101, 0x0205, 0x0003}, expected: 0x0003, expectErr: false},
+		{name: "Valid Address AEB", inst: 0x00EE, stack: []uint16{0x0234, 0x00F0, 0x003, 0x0AEB}, expected: 0x0AEB, expectErr: false},
+		{name: "Return with emtpy stack", inst: 0x00EE, stack: []uint16{}, expected: 0x0, expectErr: true},
+		{name: "Invalid Call Instruction", inst: 0x1AEB, stack: []uint16{0x0234, 0x00F0}, expected: 0x0AEB, expectErr: true},
+	}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c8 := setup()
+			for i := 0; i < len(tc.stack); i++ {
+				c8.Push(tc.stack[i])
+			}
+			err := c8.Return(tc.inst)
+			if err != nil {
+				if tc.expectErr == true {
+					return
+				}
+				t.Fatalf("failed execute call: %v", err)
+			}
+			if c8.PC != tc.expected {
+				t.Errorf("PC - expected: %x; got: %x", tc.expected, c8.PC)
+			}
+		})
+	}
+}
+
 func TestSkipEqualVal(t *testing.T) {
 	tt := []struct {
 		name      string

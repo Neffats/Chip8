@@ -43,6 +43,27 @@ func (c *CPU) Call(inst uint16) error {
 	return nil
 }
 
+//Return will set the program counter to the value at the top of the stack.
+//Instruction Format: 00EE
+func (c *CPU) Return(inst uint16) error {
+	if check := CheckInst(inst, 0x0000); !check {
+		return fmt.Errorf("received invalid Return instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x00EE {
+		return fmt.Errorf("received invalid Return instruction: %x", inst)
+	}
+
+	addr, err := c.Pop()
+	if err != nil {
+		return fmt.Errorf("could not pop return address from stack: %v", err)
+	}
+
+	c.PC = addr
+
+	return nil
+
+}
+
 //SkipEqualVal compare the specified register and value, increment PC if equal.
 //Instruction Format: 3xkk
 func (c *CPU) SkipEqualVal(inst uint16) error {

@@ -21,3 +21,5 @@ run:
 		./$(BINARY_NAME)
 deps:
 		$(GOGET) -v github.com/veandco/go-sdl2/{sdl,img,mix,ttf}
+
+#Source https://sohlich.github.io/post/go_makefile/

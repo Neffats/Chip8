@@ -166,6 +166,12 @@ func (c *CPU) Fetch() (uint16, error) {
 //Decode the instruction and return the relevant handler function.
 func (c *CPU) Decode(inst uint16) (func() error, error) {
 	switch op := inst & 0xF000; op {
+	case 0x0000:
+		switch t := inst & 0x00FF; t {
+		//Return from a subroutine.
+		case 0x00EE:
+			return func() error { return c.Return(inst) }, nil
+		}
 	//Jump to location nnn.
 	case 0x1000:
 		return func() error { return c.Jump(inst) }, nil
@@ -217,8 +223,6 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Set Vx = Vx SHL 1.
 		case 0x000E:
 			return func() error { return c.ShiftLeft(inst) }, nil
-		default:
-			return func() error { return c.NotImplemented(inst) }, nil
 		}
 	//Skip next instruction if Vx != Vy.
 	case 0x9000:
@@ -243,8 +247,6 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Skip next instruction if key with the value of Vx is not pressed.
 		case 0x00A1:
 			return func() error { return c.SkipIfNotKey(inst) }, nil
-		default:
-			return func() error { return c.NotImplemented(inst) }, nil
 		}
 	case 0xF000:
 		switch t := inst & 0x00FF; t {
@@ -275,8 +277,6 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		default:
 			return func() error { return c.NotImplemented(inst) }, nil
 		}
-	default:
-		return func() error { return c.NotImplemented(inst) }, nil
 	}
 
 	return nil, fmt.Errorf("invalid instruction: %x", inst)
@@ -295,7 +295,7 @@ func (c *CPU) Push(data uint16) error {
 
 //Pop top value off stack and increment stack pointer.
 func (c *CPU) Pop() (uint16, error) {
-	if c.SP > SPInit {
+	if c.SP >= SPInit {
 		return 0, fmt.Errorf("no data in stack to pop")
 	}
 	data := c.Stack[c.SP]
@@ -316,4 +316,17 @@ func (c *CPU) LoadProgram(program []byte) error {
 		}
 	}
 	return nil
+}
+
+//Panic will print out all of the CPU info, and call panic.
+func (c *CPU) Panic(err error) {
+	fmt.Printf("\nPC: %d\n", c.PC)
+	fmt.Printf("I: %d\n", c.I)
+	fmt.Printf("SP: %d\n", c.SP)
+	fmt.Printf("Stack:\n %v\n\n", c.Stack)
+	for i := 0; i < len(c.V); i++ {
+		fmt.Printf("V[%x]: %d\n", i, c.V[i])
+	}
+
+	panic(err)
 }
