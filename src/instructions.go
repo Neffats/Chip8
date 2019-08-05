@@ -12,6 +12,24 @@ func CheckInst(inst uint16, expected uint16) bool {
 	return got == expected
 }
 
+//ClearScreen is the cpu wrapper for the graphics ClearScreen(). Sets each pixel to 0.
+//Instruction Format: 00E0
+func (c *CPU) ClearScreen(inst uint16) error {
+	if check := CheckInst(inst, 0x0000); !check {
+		return fmt.Errorf("received invalid ClearScreen instruction: %x", inst)
+	}
+	if check := inst & 0x00FF; check != 0x00E0 {
+		return fmt.Errorf("received invalid ClearScreen instruction: %x", inst)
+	}
+
+	err := c.G.ClearScreen()
+	if err != nil {
+		return fmt.Errorf("could not clear the screen: %v", err)
+	}
+
+	return nil
+}
+
 //Jump PC to the specified address.
 //Instruction Format: 1nnn
 func (c *CPU) Jump(inst uint16) error {
@@ -599,6 +617,7 @@ func (c *CPU) LoadRegs(inst uint16) error {
 
 	reg := (inst & 0x0F00) >> 8
 	e := c.V[reg]
+	fmt.Printf("reg: %d", e)
 
 	var err error
 

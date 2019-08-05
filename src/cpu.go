@@ -100,7 +100,7 @@ func (c *CPU) Init() error {
 
 func (c *CPU) writeSprite(sprite [5]byte, addr uint16) error {
 	for i := 0; i < len(sprite); i++ {
-		c.Memory.Write(sprite[i], addr+0)
+		c.Memory.Write(sprite[i], addr+uint16(i))
 	}
 	return nil
 }
@@ -168,6 +168,9 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 	switch op := inst & 0xF000; op {
 	case 0x0000:
 		switch t := inst & 0x00FF; t {
+		//Clear the display.
+		case 0x00E0:
+			return func() error { return c.ClearScreen(inst) }, nil
 		//Return from a subroutine.
 		case 0x00EE:
 			return func() error { return c.Return(inst) }, nil

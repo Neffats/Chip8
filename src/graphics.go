@@ -23,7 +23,7 @@ type Graphics struct {
 	m *Memory
 
 	screen    [ScreenWidth][ScreenHeight]uint8
-	screenmux sync.Mutex
+	screenmux sync.RWMutex
 
 	window  *sdl.Window
 	surface *sdl.Surface
@@ -91,8 +91,8 @@ func (g *Graphics) Run() error {
 
 //PaintSurface takes the screen array and translates it into pixels on the window surface.
 func (g *Graphics) PaintSurface() error {
-	g.screenmux.Lock()
-	defer g.screenmux.Unlock()
+	g.screenmux.RLock()
+	defer g.screenmux.RUnlock()
 	for h := 0; h < int(g.h); h++ {
 		for w := 0; w < int(g.w); w++ {
 			if g.screen[w][h] == 1 {
@@ -141,6 +141,20 @@ func (g *Graphics) Draw(x int32, y int32, n uint8, addr uint16) (bool, error) {
 	}
 
 	return collision, nil
+}
+
+//ClearScreen zero's out every pixel on the screen.
+func (g *Graphics) ClearScreen() error {
+	g.screenmux.Lock()
+	defer g.screenmux.Unlock()
+
+	for y := int32(0); ScreenHeight < g.h; y++ {
+		for x := int32(0); ScreenWidth < g.w; x++ {
+			g.screen[y][x] = 0
+		}
+	}
+
+	return nil
 }
 
 //Destroy the graphics window.
