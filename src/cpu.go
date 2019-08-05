@@ -217,6 +217,8 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Set Vx = Vx SHL 1.
 		case 0x000E:
 			return func() error { return c.ShiftLeft(inst) }, nil
+		default:
+			return func() error { return c.NotImplemented(inst) }, nil
 		}
 	//Skip next instruction if Vx != Vy.
 	case 0x9000:
@@ -244,7 +246,6 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		default:
 			return func() error { return c.NotImplemented(inst) }, nil
 		}
-
 	case 0xF000:
 		switch t := inst & 0x00FF; t {
 		//Set Vx = delay timer value.
@@ -271,6 +272,8 @@ func (c *CPU) Decode(inst uint16) (func() error, error) {
 		//Read registers V0 through Vx from memory starting at location I.
 		case 0x0065:
 			return func() error { return c.LoadRegs(inst) }, nil
+		default:
+			return func() error { return c.NotImplemented(inst) }, nil
 		}
 	default:
 		return func() error { return c.NotImplemented(inst) }, nil

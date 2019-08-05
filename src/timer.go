@@ -16,7 +16,7 @@ type Timer struct {
 //Sets the ticker to 60Hz and initialises the timer at 0.
 //It also kicks off the ticker goroutine.
 func NewTimer() *Timer {
-	ticker := time.NewTicker(60 / time.Second)
+	ticker := time.NewTicker(16666666 * time.Nanosecond)
 	t := &Timer{
 		timer:  0,
 		mux:    &sync.RWMutex{},
